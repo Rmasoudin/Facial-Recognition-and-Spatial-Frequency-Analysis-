@@ -1,168 +1,97 @@
 # 🧠 Facial-Recognition-and-Spatial-Frequency-Analysis-
 A project exploring how **spatial frequency information** affects **facial identity perception** and how **Active Appearance Models (AAMs)** can be used to model perceptual dynamics in facial recognition.
 
-## 🧩 Phase One: Spatial Frequency and Identity Detection
+## 🧠 Project Summary
 
-### 1. Overview
-Facial recognition is a core function of human social cognition. The human brain can extract identity, expression, and emotion using information from various spatial frequency bands.
-
-This phase investigates how filtering facial images into **low**, **high**, and **intact spatial frequency bands** impacts participants’ ability to recognize facial identity. By applying controlled filters and measuring behavioral responses, we explore the computational and perceptual mechanisms of face processing.
-
-**Keywords:** spatial frequency, cognitive science, psychophysics, face processing, identity recognition
+Human face recognition uses geometry, texture, and spectral information. This project probes how **intact**, **low**, and **high** spatial-frequency content influences identity detection along morph continua between two identities. Analyses include psychometric function fitting, ROC-based sensitivity measures, and closed-loop perceptual experiments with Active Appearance Models (AAMs).
 
 ---
 
-### 2. Experimental Design
+## 🔬 Experiment Design
 
-#### Setup
-- **Identities:** Two male and two female faces  
-- **Morphing:** 7 morph levels per pair (interpolating between the two identities)  
-- **Spatial Frequencies:** Low (LF), High (HF), Intact (IF)  
-- **Stimuli:** 14 images × 3 frequency levels = **42 total stimuli**  
-- **Trials:** 42 × 32 repetitions = **1344 trials**
+### Stimuli
+- Two identity pairs (male and female) were morphed across **7 levels** (from one identity extreme to the other).
+- Each morph level was processed into three spectral conditions:
+  - **IF** — Intact frequency
+  - **LF** — Low-frequency filtered
+  - **HF** — High-frequency filtered  
+- **Total stimuli:** 14 morph images × 3 frequency conditions = **42 images**.
 
-#### Procedure
-1. **Training:** Participants learn to identify the four main faces.
-2. **Main Task:**
-   - Three *frequency-specific* blocks (“same” blocks)
-   - One *mixed* block with all frequencies
-3. **Trial Flow:**
-   - Face displayed for 400 ms
-   - Two name options appear (one left, one right)
-   - Participant has 3 s to choose the matching identity
-4. **Control Variables:**
-   - Gender of morphs (male/male or female/female)
-   - Response hand randomized per block (left/right)
+### Trial / Block Structure
+- Each trial: stimulus shown centrally for **400 ms**, then two name options shown left/right.
+- Participant has **3 seconds** to choose which identity the image matches more closely.
+- Blocks:
+  - Three **"same"** blocks (each contains stimuli from only one frequency band).
+  - One **"mix"** block (trials randomly drawn from all bands).
+- Each subject: **1,344 trials** (42 images × 32 repetitions).
+- Training: participants learn face–name associations before starting; training uses the same frequency condition as the block.
 
 ---
 
-### 3. Data Format
+## 📁 Data Format
 
-Data are provided in both **CSV** and **MAT** formats.
-
-#### `subjectInfo`
-| Variable | Description |
-|----------|-------------|
-| `age` | Participant age |
-| `sex` | Gender |
-| `dom` | Dominant hand |
-
-#### `data`
-| Variable | Description |
-|-----------|-------------|
-| `trialKeys` | Face pair (“MahGol” or “AbHa”) |
-| `levelFreq` | Frequency condition (IF, LF, HF) |
-| `levelFace` | Morph level (−3 to 3) |
-| `lCueName`, `rCueName` | Name options shown left/right |
-| `srespLoc`, `srespChoice` | Response and selected ID |
-| `RT` | Reaction time |
-| `Hand` | Response hand used |
-| `blockType` | “same” or “mix” |
-| `subjectID` | Participant identifier |
+Data are provided in both **CSV** and **MAT** formats and include:
+- `subjectInfo` — demographic and subject-level data (age, sex, dom hand).
+- `data` — per-trial table with fields such as:
+  - `trialKeys` (e.g., "MahGol", "AbHa")
+  - `levelFreq` (IF / LF / HF)
+  - `levelFace` (morph level: -3 → +3)
+  - `lCueName`, `rCueName` (left / right option labels)
+  - `srespLoc`, `srespChoice` (response key & choice)
+  - `RT` (reaction time)
+  - `Hand` (hand used)
+  - `blockType` ("same" / "mix")
+  - `subjectID`
 
 ---
 
-### 4. Analysis Pipeline
+## 📊 Analysis Overview
 
-#### (1) Psychometric Fitting
-Behavioral data are fitted with a **sigmoidal psychometric curve** to estimate perceptual sensitivity.
+All analyses are done per-subject and then aggregate-tested across the population.
 
-Simple sigmoid:
+### 1. Psychometric Fitting
+- Fit psychometric curves to response proportions across morph levels.
+- Candidate models: simple sigmoid (σ(x) = α / (1 + exp(−βx))) and Gaussian CDF; extended sigmoids with shift and lapse terms are considered.
+- Model comparison using **AIC / BIC** to penalize model complexity.
+- Main metric extracted: **sensitivity (β)** from the sigmoid fit.
+- Stratifications: spatial frequency, block type, trialKey (identity pair), hand, subject sex, and dominance.
 
-\[
-\sigma(x) = \frac{\alpha}{1 + e^{-\beta x}}
-\]
+### 2. ROC-Based Sensitivity
+- Compute **Area under the ROC (AuROC)** to quantify separability between identity classes under different conditions.
+- Use AuROC as an alternative sensitivity metric and repeat hypothesis tests conducted for the psychometric fits.
 
-Generalized sigmoid:
+### 3. Hypothesis Tests
+Example hypotheses tested:
+- Sensitivity differs across spatial frequency bands (IF vs LF vs HF).
+- Recognition performance varies with gender of face stimulus or participant.
+- Hand used (left / right / dominant) influences sensitivity.
 
-\[
-\sigma(x) = \frac{\alpha}{1 + e^{-\beta(x - y)}} + \lambda
-\]
-
-Model fits (Sigmoid vs. Gaussian CDF) are compared using **AIC** or **BIC** to balance accuracy and complexity.
-
-##### Hypotheses Tested
-- Differences in sensitivity across spatial frequency bands  
-- Gender-related performance differences  
-- Influence of response hand (left vs right)  
-- Role of dominant hand on accuracy  
-- Same-gender vs. opposite-gender recognition effects
-
-All tests are conducted on “same” blocks using appropriate statistical analyses (e.g., t-tests, ANOVA).
+### 4. Exploratory Hypothesis
+- Additional exploratory tests formulated and evaluated using the same data (e.g., interactions between frequency band and morph steepness, or reaction time trade-offs).
 
 ---
 
-#### (2) Sensitivity via ROC Analysis
-An alternative sensitivity metric uses the **Area Under the ROC Curve (AuROC)** to quantify separability (sROC) between identities.  
-The ROC analysis provides a model-free estimate of participants’ discriminability across frequency conditions and subject factors.
+## 🔁 Phase Two — Closed-Loop AAM Task
+
+- Extended the study into an adaptive, closed-loop paradigm using **Active Appearance Models (AAMs)**.
+- At each step, participants choose which of four generated images is most similar to a target; the chosen image seeds the next generation of images (iterative steering through AAM latent space).
+- This implements a feedback-driven trajectory toward a target identity and probes perceptual navigation in a generative face space.
 
 ---
 
-#### (3) Exploratory Hypotheses
-Additional hypotheses can be explored by combining behavioral and demographic variables, such as correlations between reaction time and spatial frequency sensitivity, or hand-specific lateralization effects.
+## 💻 Implementation & Tools
+
+- **Primary languages / libraries:** Python (NumPy, SciPy, Matplotlib), PsychoPy
+- **Data:** CSV and MAT
+- **Scripts / outputs included (suggested):**
+  - PsychoPy experiment (`.py` or `.psyexp`)
+  - Preprocessing and cleaning scripts
+  - Fitting and model comparison scripts
+  - Visualization scripts (psychometric curves, ROC plots)
+  - Summary report and JND calculations
 
 ---
 
-## ⚙️ Phase Two: Active Appearance Model-Based Perceptual Analysis
-
-### 1. Concept
-This phase introduces **Active Appearance Models (AAMs)** to study **closed-loop perceptual systems**.  
-AAMs represent facial variation in two orthogonal components:
-
-- **Shape Features:** Landmark geometry (e.g., eyes, nose, mouth).  
-- **Appearance Features:** Texture and illumination properties.  
-
-By generating morph sequences within the AAM latent space, the system can simulate dynamic face perception, where each participant’s choice provides feedback to guide subsequent stimulus generation—analogous to a **closed-loop adaptive system**.
-
----
-
-### 2. PsychoPy Experiment Design
-
-**Goal:** Measure perceptual sensitivity along controlled morph continua using AAM-generated faces.
-
-**Materials:**
-- Two folders: `app/` (appearance) and `sha/` (shape)  
-- Each contains 20 subfolders (`f0`–`f19`) with 100 images each (morph continuum)
-
-**Feature Assignment:**
-- Select features based on an index (e.g., last digit of subject or run ID)
-- Use four folders: `app/fX`, `app/fX+10`, `sha/fX`, `sha/fX+10`
-
-**Image Selection:**
-- From each folder, choose 10 images evenly spaced along the morph continuum (e.g., 10, 20, …, 100).
-
-**Trial Design:**
-- Each image presented 10 times (randomized)
-- Participants judge which original face the image resembles more
-- Responses mapped to two keys (e.g., `A` = Face 1, `L` = Face 2)
-
-**Data Analysis:**
-- Compute proportion of “Face 1” responses vs. morph level
-- Fit **sigmoid** or **cumulative Gaussian** curves
-- Calculate **Just Noticeable Difference (JND)** for each condition
-
----
-
-## 📊 Deliverables
-
-- PsychoPy experiment code (`.py` or `.psyexp`)  
-- Raw and processed data  
-- Psychometric plots with fitted curves  
-- Calculated JND values  
-- Short report summarizing methodology, results, and interpretations
-
----
-
-## 🧮 References
-
-1. Kanwisher et al. (1997) — Fusiform Face Area (FFA)  
-2. Haxby et al. (2000) — Distributed neural systems for face perception  
-3. Cootes et al. (2001) — Active Appearance Models  
-4. Blanz & Vetter (1999) — 3D morphable models  
-5. Chang & Tsao (2017) — Neural face codes  
-6. Freiwald et al. (2009) — Face processing networks in primates  
-
----
-
-## 🧰 Repository Structure
-
+📜 License  
+This repository is provided for research and academic use.  
+Please acknowledge this work appropriately if it informs your analyses.
